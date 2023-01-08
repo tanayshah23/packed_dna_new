@@ -2,7 +2,7 @@
 
 #![warn(missing_docs)]
 
-use std::{convert::TryFrom, fmt::Display, str::FromStr};
+use std::{convert::TryFrom, fmt::Display, iter::FromIterator, str::FromStr};
 
 // TODO: add a packed module with the PackedDna struct
 //
@@ -59,6 +59,68 @@ impl FromStr for Nuc {
             "T" => Ok(Self::T),
             _ => Err(ParseNucError(upper)),
         }
+    }
+}
+
+// Struct for PackedDNA
+struct PackedDna {
+    packed_dna: Vec<u8>,
+}
+
+// Implementation for PackedDNA
+impl PackedDna {
+    fn new(vec: Vec<u8>) -> PackedDna {
+        PackedDna { packed_dna: vec }
+    }
+
+    fn print(&self) {
+        for x in &self.packed_dna {
+            print!("{}", x);
+        }
+        println!()
+    }
+
+    fn get(&self, idx: usize) -> Nuc {
+        let nuc = self.packed_dna[idx];
+        match nuc {
+            0b00 => Nuc::A,
+            0b01 => Nuc::C,
+            0b10 => Nuc::G,
+            _ => Nuc::T,
+        }
+    }
+}
+
+impl FromStr for PackedDna {
+    type Err = ParseNucError<String>;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut packed_dna = Vec::new();
+        let upper = s.to_ascii_uppercase();
+        for char in upper.chars() {
+            match char {
+                'A' => packed_dna.push(0b00),
+                'C' => packed_dna.push(0b01),
+                'G' => packed_dna.push(0b10),
+                'T' => packed_dna.push(0b11),
+                _ => return Err(ParseNucError(upper)),
+            }
+        }
+        Ok(PackedDna::new(packed_dna))
+    }
+}
+
+impl FromIterator<Nuc> for PackedDna {
+    fn from_iter<I: IntoIterator<Item = Nuc>>(iter: I) -> Self {
+        let mut temp_dna = Vec::new();
+        for nuc in iter {
+            match nuc {
+                Nuc::A => temp_dna.push(0),
+                Nuc::C => temp_dna.push(1),
+                Nuc::G => temp_dna.push(2),
+                Nuc::T => temp_dna.push(3),
+            }
+        }
+        PackedDna::new(temp_dna)
     }
 }
 
