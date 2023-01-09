@@ -261,6 +261,17 @@ mod tests {
     }
 
     #[test]
+    fn try_from_nuc_negative() {
+        let nuc_from_char = Nuc::try_from('X');
+        match nuc_from_char {
+            Ok(ref _x) => {}
+            Err(e) => {
+                assert_eq!("failed to parse nucleotide from X", e.to_string());
+            }
+        }
+    }
+
+    #[test]
     fn from_str_nuc_a_uppercase() {
         let nuc_from_string = Nuc::from_str("A").unwrap();
         assert_eq!(nuc_from_string, Nuc::A);
@@ -309,6 +320,17 @@ mod tests {
     }
 
     #[test]
+    fn from_string_nuc_negative() {
+        let nuc_from_string = Nuc::from_str("X");
+        match nuc_from_string {
+            Ok(ref _x) => {}
+            Err(e) => {
+                assert_eq!("failed to parse nucleotide from X", e.to_string());
+            }
+        }
+    }
+
+    #[test]
     fn from_string_test_len10_positive() {
         let dna_from_string = PackedDna::from_str("ACGTTGCACT").unwrap();
         let vec = [27, 228, 7];
@@ -330,6 +352,17 @@ mod tests {
         let vec = [27, 228];
         assert_eq!(dna_from_string.packed_dna, vec);
         assert_eq!(dna_from_string.last_nuc_set_count, 0);
+    }
+
+    #[test]
+    fn from_string_invalid_nuc() {
+        let packed_dna = PackedDna::from_str("acgtx");
+        match packed_dna {
+            Ok(ref _x) => {}
+            Err(e) => {
+                assert_eq!("failed to parse nucleotide from ACGTX", e.to_string());
+            }
+        }
     }
 
     #[test]
@@ -405,11 +438,13 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn get_nuc_test_negative() {
-    //     match dna_from_string.get(11) {
-    //         Ok(x) => assert_eq!(x, Nuc::T),
-    //         Err(e) => assert_eq!("Index 11 is greater than the given DNA Length", e),
-    //     }
-    // }
+    #[test]
+    fn get_nuc_test_negative() {
+        let dna_from_string = PackedDna::from_str("ACGTTGCACT").unwrap();
+        let get11 = dna_from_string.get(11);
+        match get11 {
+            Ok(_x) => {}
+            Err(e) => assert_eq!("Index 11 is greater than the given DNA Length", e),
+        }
+    }
 }
