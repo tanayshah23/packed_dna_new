@@ -62,26 +62,30 @@ impl FromStr for Nuc {
     }
 }
 
-// Struct for PackedDNA
+/// Struct for PackedDNA
 #[derive(Debug)]
-struct PackedDna {
+pub struct PackedDna {
     packed_dna: Vec<u8>,
     last_nuc_set_count: usize,
+    a_count: usize,
+    c_count: usize,
+    g_count: usize,
+    t_count: usize,
 }
 
-// Implementation for PackedDNA
+/// Implementation for PackedDNA
 impl PackedDna {
-    // Nuc at Index 4: (4-1)/4 = 0 Index in Vec, (4-1)%4 = 3 Index in String [3*2, 3*2+1]
-    // Nuc at Index 9: (9-1)/4 = 2 Index in Vec, (9-1)%4 = 0 Index in String [0*2, 0*2+1]
-    // 00 01 10 11 - 11 10 01 00 - 01 11
-    fn get(&self, idx: usize) -> Result<Nuc, String> {
+    /// Nuc at Index 4: (4-1)/4 = 0 Index in Vec, (4-1)%4 = 3 Index in String [3*2, 3*2+1]
+    /// Nuc at Index 9: (9-1)/4 = 2 Index in Vec, (9-1)%4 = 0 Index in String [0*2, 0*2+1]
+    /// 00 01 10 11 - 11 10 01 00 - 01 11
+    pub fn get(&self, idx: usize) -> Result<Nuc, String> {
         let vec_index = (idx - 1) / 4;
         let bit_index = (idx - 1) % 4;
         if (vec_index >= self.packed_dna.len())
             || (vec_index >= self.packed_dna.len() - 1 && bit_index >= self.last_nuc_set_count)
         {
             let error = format!("Index {} is greater than the given DNA Length", idx);
-            return Err(error.to_string());
+            return Err(error);
         }
         let mut binary_rep = format!("{:08b}", self.packed_dna[vec_index]);
         if (vec_index == self.packed_dna.len() - 1) && (self.last_nuc_set_count != 0) {
@@ -102,6 +106,16 @@ impl PackedDna {
             _ => Err("Invalid String Encountered".to_string()),
         }
     }
+
+    /// Get counts API
+    pub fn get_counts(&self) -> Vec<(char, usize)> {
+        return vec![
+            ('A', self.a_count),
+            ('C', self.c_count),
+            ('G', self.g_count),
+            ('T', self.t_count),
+        ];
+    }
 }
 
 impl FromStr for PackedDna {
@@ -111,16 +125,29 @@ impl FromStr for PackedDna {
         let extra_nuc = string_dna.len() % 4;
         let mut vec: Vec<u8> = Vec::new();
         let mut curr = 0;
+        let (mut a, mut c, mut g, mut t) = (0, 0, 0, 0);
         for (i, char) in string_dna.chars().enumerate() {
             if (i != 0) && (i % 4) == 0 {
                 vec.push(curr);
                 curr = 0;
             }
             match char {
-                'A' => curr <<= 2,
-                'C' => curr = curr << 2 | 1,
-                'G' => curr = curr << 2 | 2,
-                'T' => curr = curr << 2 | 3,
+                'A' => {
+                    curr <<= 2;
+                    a += 1
+                }
+                'C' => {
+                    curr = curr << 2 | 1;
+                    c += 1
+                }
+                'G' => {
+                    curr = curr << 2 | 2;
+                    g += 1
+                }
+                'T' => {
+                    curr = curr << 2 | 3;
+                    t += 1
+                }
                 _ => return Err(ParseNucError(string_dna)),
             }
         }
@@ -128,6 +155,10 @@ impl FromStr for PackedDna {
         Ok(PackedDna {
             packed_dna: vec,
             last_nuc_set_count: extra_nuc,
+            a_count: a,
+            c_count: c,
+            g_count: g,
+            t_count: t,
         })
     }
 }
@@ -137,6 +168,7 @@ impl FromIterator<Nuc> for PackedDna {
         let mut extra_nuc = 0;
         let mut vec: Vec<u8> = Vec::new();
         let mut curr = 0;
+        let (mut a, mut c, mut g, mut t) = (0, 0, 0, 0);
         for (counter, nuc) in iter.into_iter().enumerate() {
             if (counter != 0) && (counter % 4) == 0 {
                 vec.push(curr);
@@ -144,10 +176,22 @@ impl FromIterator<Nuc> for PackedDna {
                 extra_nuc = 0;
             }
             match nuc {
-                Nuc::A => curr <<= 2,
-                Nuc::C => curr = curr << 2 | 1,
-                Nuc::G => curr = curr << 2 | 2,
-                Nuc::T => curr = curr << 2 | 3,
+                Nuc::A => {
+                    curr <<= 2;
+                    a += 1
+                }
+                Nuc::C => {
+                    curr = curr << 2 | 1;
+                    c += 1
+                }
+                Nuc::G => {
+                    curr = curr << 2 | 2;
+                    g += 1
+                }
+                Nuc::T => {
+                    curr = curr << 2 | 3;
+                    t += 1
+                }
             }
             extra_nuc += 1;
         }
@@ -156,6 +200,10 @@ impl FromIterator<Nuc> for PackedDna {
         PackedDna {
             packed_dna: vec,
             last_nuc_set_count: extra_nuc,
+            a_count: a,
+            c_count: c,
+            g_count: g,
+            t_count: t,
         }
     }
 }
