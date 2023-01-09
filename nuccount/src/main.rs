@@ -43,7 +43,7 @@ fn main() {
                 println!("{} {}", nuc, counts);
             }
         }
-        /// Doubt: I don't understand why we need to exit the service when someone passes incorrect string.
+        // Doubt: I don't understand why we need to exit the service when someone passes incorrect string.
         Err(e) => {
             println!("Invalid DNA String Passed \nError: {}", e);
             process::exit(1);
