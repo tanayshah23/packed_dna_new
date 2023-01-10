@@ -4,17 +4,6 @@
 
 use std::{convert::TryFrom, fmt::Display, iter::FromIterator, str::FromStr};
 
-// TODO: add a packed module with the PackedDna struct
-//
-// this struct must have the following:
-// 1. A representation that is more memory efficient that simply storing a vector of `Nuc`
-// 2. A FromStr implementation (should be case insensitive like the `Nuc` impl)
-// 3. A `FromIterator` implementation to construct it from an iterator over `Nuc`s
-// 4. A `fn get(&self, idx: usize) -> Nuc` getter for a particular nucleotide
-//
-// Make sure to unit test and document all elements
-// Also, the internal representation of the PackedDna struct should be privately scoped
-
 /// A nucleotide
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Nuc {
@@ -62,7 +51,7 @@ impl FromStr for Nuc {
     }
 }
 
-/// Struct for PackedDNA
+/// PackedDNA
 #[derive(Debug)]
 pub struct PackedDna {
     packed_dna: Vec<u8>,
@@ -75,9 +64,7 @@ pub struct PackedDna {
 
 /// Implementation for PackedDNA
 impl PackedDna {
-    /// Nuc at Index 4: (4-1)/4 = 0 Index in Vec, (4-1)%4 = 3 Index in String [3*2, 3*2+1]
-    /// Nuc at Index 9: (9-1)/4 = 2 Index in Vec, (9-1)%4 = 0 Index in String [0*2, 0*2+1]
-    /// 00 01 10 11 - 11 10 01 00 - 01 11
+    /// Function to get nucleotide at a given index
     pub fn get(&self, idx: usize) -> Result<Nuc, String> {
         let vec_index = (idx - 1) / 4;
         let bit_index = (idx - 1) % 4;
@@ -107,7 +94,7 @@ impl PackedDna {
         }
     }
 
-    /// Get counts API
+    /// Get the counts of individual nucleotides
     pub fn get_counts(&self) -> Vec<(char, usize)> {
         return vec![
             ('A', self.a_count),
@@ -118,6 +105,8 @@ impl PackedDna {
     }
 }
 
+/// FromString implementation for PackedDna
+/// Takes in the string DNA as the input and stores the DNA in efficient way
 impl FromStr for PackedDna {
     type Err = ParseNucError<String>;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -163,6 +152,8 @@ impl FromStr for PackedDna {
     }
 }
 
+/// FromIterator implementation for PackedDna
+/// Takes in the vector of Nuc as the input and stores the DNA in efficient way
 impl FromIterator<Nuc> for PackedDna {
     fn from_iter<I: IntoIterator<Item = Nuc>>(iter: I) -> Self {
         let mut extra_nuc = 0;
@@ -446,5 +437,12 @@ mod tests {
             Ok(_x) => {}
             Err(e) => assert_eq!("Index 11 is greater than the given DNA Length", e),
         }
+    }
+
+    #[test]
+    fn get_nuc_count_test() {
+        let dna_from_string = PackedDna::from_str("ACGTTGCACT").unwrap();
+        let counts = dna_from_string.get_counts();
+        assert_eq!(counts, vec![('A', 2), ('C', 3), ('G', 2), ('T', 3)]);
     }
 }

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Nuc","A nucleotide"]],"struct":[["PackedDna","PackedDNA"],["ParseNucError","An error that can occur when parsing a nucleotide."]]});
